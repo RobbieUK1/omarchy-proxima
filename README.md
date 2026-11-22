@@ -16,7 +16,7 @@ For a Git-installed copy, use `omarchy plugin update local.proxima` to update. I
 
 ## Choose a device
 
-1. Open **Proxima** on the bar and choose your device from the Bluetooth list.
+1. Open **Proxima** on the bar and choose your device from the Bluetooth list. Search by name or paste all or part of a Bluetooth address.
 2. Enable monitoring. Stand where you want Proxima to keep Omarchy awake and look for **Idle lock paused**.
 3. If needed, adjust the minimum signal. A stronger threshold such as −60 dBm narrows the range. A weaker threshold such as −80 dBm increases it. Check the result again where you expect proximity to end.
 

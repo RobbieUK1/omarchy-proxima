@@ -12,6 +12,7 @@ Ui.KeyboardPanel {
   required property var proxima
   required property var strings
   property bool choosingDevice: false
+  property string deviceQuery: ""
   property bool scannerRequested: false
   readonly property bool wantsSetupScan: open && choosingDevice && proxima.ready
 
@@ -183,10 +184,21 @@ Ui.KeyboardPanel {
             color: panel.mutedInk
           }
 
+          Ui.TextField {
+            Layout.fillWidth: true
+            foreground: panel.ink
+            placeholderText: panel.strings.t("device.search")
+            Accessible.name: placeholderText
+            maximumLength: 120
+            selectByMouse: true
+            text: panel.deviceQuery
+            onTextEdited: panel.deviceQuery = text
+          }
+
           BodyText {
             Layout.fillWidth: true
             visible: deviceRows.count === 0
-            text: panel.strings.t("device.waiting")
+            text: panel.strings.t(panel.deviceQuery.trim() ? "device.noMatch" : "device.waiting")
             color: panel.mutedInk
           }
 
@@ -302,7 +314,13 @@ Ui.KeyboardPanel {
       function sync() {
         const next = new Map()
         const devices = panel.choosingDevice ? panel.proxima.devices || [] : []
+        const query = panel.deviceQuery.trim().toLowerCase()
+        const addressQuery = query.replace(/[:.\s-]/g, "")
         for (const device of devices) {
+          const matchesAddress = addressQuery.length > 0
+            && device.address.toLowerCase().replace(/:/g, "").includes(addressQuery)
+          if (query && !panel.deviceName(device).toLowerCase().includes(query) && !matchesAddress)
+            continue
           next.set(device.address + "/" + device.addressType, device)
         }
         for (let index = 0; index < count;) {
@@ -327,6 +345,11 @@ Ui.KeyboardPanel {
     Connections {
       target: panel
       function onChoosingDeviceChanged() {
+        if (!panel.choosingDevice) panel.deviceQuery = ""
+        deviceRows.sync()
+        scroller.contentY = 0
+      }
+      function onDeviceQueryChanged() {
         deviceRows.sync()
         scroller.contentY = 0
       }

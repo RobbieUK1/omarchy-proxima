@@ -22,6 +22,8 @@
   "device.scanTitle": "Bluetooth devices",
   "device.scanHelp": "Choose a paired device or one that broadcasts a detectable Bluetooth signal.",
   "device.waiting": "Looking for Bluetooth devices…",
+  "device.search": "Search by name or Bluetooth address",
+  "device.noMatch": "No matching devices seen yet. Scanning continues.",
   "device.private": "This device uses a private address. If its address changes, normal idle locking resumes.",
   "signal.dbm": "%1 dBm",
   "signal.unknown": "No current signal",

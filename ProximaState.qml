@@ -160,13 +160,13 @@ Scope {
   function receive(line) {
     if (scannerKey === "" || scannerKey !== scanKey) return
     try {
-      if (line.length > 32768) throw new Error("Oversized scanner response")
+      if (line.length > 131072) throw new Error("Oversized scanner response")
       const report = JSON.parse(line)
       if (["starting", "scanning", "near", "away", "bluetooth-off", "no-adapter",
            "unavailable", "dependencies-missing"].indexOf(report.state) === -1
           || !Array.isArray(report.devices)) throw new Error("Invalid scanner response")
       const found = []
-      for (const entry of report.devices.slice(0, 40)) {
+      for (const entry of report.devices.slice(0, 80)) {
         const device = validDevice(entry)
         if (device) found.push(device)
       }
