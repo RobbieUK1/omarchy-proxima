@@ -44,6 +44,7 @@ class Device:
     rssi: int | None = None
     seen_until: float = 0
     near_until: float = 0
+    beacon_id: str = ""
 
     @classmethod
     def from_properties(cls, properties):
@@ -134,9 +135,12 @@ class Discovery:
         if rssi is None:
             return
         address = bytes(payload).hex().upper()
+        device.beacon_id = address
         key = (device.adapter, address)
         beacon = self.beacons.setdefault(
             key, Device(address, "beacon", device.adapter, "Proxima Android " + address[-4:], False, False))
+        if device.name:
+            beacon.name = device.name
         self.observe(beacon, rssi)
 
     def interfaces_added(self, path, interfaces):
@@ -190,6 +194,10 @@ class Discovery:
             if updated.identity == device.identity and updated.adapter == device.adapter:
                 updated.rssi, updated.seen_until, updated.near_until = (
                     device.rssi, device.seen_until, device.near_until)
+                updated.beacon_id = device.beacon_id
+                beacon = self.beacons.get((updated.adapter, updated.beacon_id))
+                if beacon and updated.name and beacon.signal(boot_time()) is not None:
+                    beacon.name = updated.name
             device = self.devices[path] = updated
         if "RSSI" in invalidated:
             device.seen_until = device.near_until = 0
