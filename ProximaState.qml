@@ -67,9 +67,11 @@ Scope {
   }
 
   function validDevice(device) {
-    if (!device || typeof device.address !== "string"
-        || !/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(device.address)
-        || (device.addressType !== "public" && device.addressType !== "random")) return null
+    if (!device || typeof device.address !== "string") return null
+    if (device.addressType === "beacon") {
+      if (!/^[0-9a-f]{16}$/i.test(device.address)) return null
+    } else if ((device.addressType !== "public" && device.addressType !== "random")
+        || !/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(device.address)) return null
     const address = device.address.toUpperCase()
     const name = typeof device.name === "string"
       ? device.name.slice(0, 120).replace(/[\x00-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]/g, "").trim()

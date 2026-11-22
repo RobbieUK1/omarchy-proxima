@@ -57,6 +57,8 @@ Ui.KeyboardPanel {
   }
 
   function deviceDetails(device) {
+    if (device.addressType === "beacon")
+      return strings.t("device.detailsBeacon").arg(device.address).arg(signalText(device.rssi))
     return strings.t(device.paired ? "device.detailsPaired" : "device.detailsUnpaired")
       .arg(device.address).arg(signalText(device.rssi))
   }
@@ -189,6 +191,7 @@ Ui.KeyboardPanel {
           color: panel.mutedInk
           text: panel.proxima.target ? panel.deviceDetails({
             address: panel.proxima.target.address,
+            addressType: panel.proxima.target.addressType,
             paired: panel.proxima.target.paired,
             rssi: panel.proxima.rssi
           }) : ""

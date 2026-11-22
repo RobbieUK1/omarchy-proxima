@@ -13,6 +13,8 @@ OBJECT_MANAGER = "org.freedesktop.DBus.ObjectManager"
 PROPERTIES = "org.freedesktop.DBus.Properties"
 ADDRESS = re.compile(r"(?:[0-9A-F]{2}:){5}[0-9A-F]{2}")
 ADDRESS_TYPES = ("public", "random")
+BEACON_UUID = "78c89db8-369f-45da-8660-a6c5e766a1fd"
+BEACON_ID = re.compile(r"[0-9A-F]{16}")
 DEVICE_METADATA = {"Address", "AddressType", "Adapter", "Alias", "Name", "Paired", "Connected"}
 PRESENCE_SECONDS = 60
 LIST_SECONDS = 60
@@ -82,6 +84,7 @@ class Discovery:
         self.threshold = threshold
         self.adapters = {}
         self.devices = {}
+        self.beacons = {}
         self.scanning = set()
         self.state = "starting"
         self.refresh_at = 0
@@ -98,6 +101,7 @@ class Discovery:
         self.owner = owner
         self.adapters.clear()
         self.devices.clear()
+        self.beacons.clear()
         self.scanning.clear()
         self.state = "starting" if owner else "unavailable"
         self.refresh_at = 0
@@ -115,9 +119,25 @@ class Discovery:
 
     def forget_observations(self, adapter):
         self.scanning.discard(adapter)
+        self.beacons = {key: device for key, device in self.beacons.items() if key[0] != adapter}
         for device in self.devices.values():
             if device.adapter == adapter:
                 device.seen_until = device.near_until = 0
+
+    def observe_beacon(self, device, properties):
+        payload = properties.get("ServiceData", {}).get(BEACON_UUID)
+        if payload is None or len(payload) != 8 or device.adapter not in self.scanning:
+            return
+        rssi = properties.get("RSSI")
+        if rssi is None and device.seen_until > boot_time() + PRESENCE_SECONDS - 2:
+            rssi = device.rssi
+        if rssi is None:
+            return
+        address = bytes(payload).hex().upper()
+        key = (device.adapter, address)
+        beacon = self.beacons.setdefault(
+            key, Device(address, "beacon", device.adapter, "Proxima Android " + address[-4:], False, False))
+        self.observe(beacon, rssi)
 
     def interfaces_added(self, path, interfaces):
         if ADAPTER in interfaces:
@@ -128,6 +148,7 @@ class Discovery:
             if device is not None:
                 self.devices[path] = device
                 self.observe(device, properties.get("RSSI"))
+                self.observe_beacon(device, properties)
 
     def interfaces_removed(self, path, interfaces):
         if DEVICE in interfaces:
@@ -173,6 +194,7 @@ class Discovery:
         if "RSSI" in invalidated:
             device.seen_until = device.near_until = 0
         self.observe(device, changed.get("RSSI"))
+        self.observe_beacon(device, changed)
 
     def refresh(self):
         self.refresh_at = boot_time() + RETRY_SECONDS
@@ -186,6 +208,7 @@ class Discovery:
             # Closing this D-Bus connection on exit releases our discovery sessions.
             self.scanning.clear()
             self.devices.clear()
+            self.beacons.clear()
             self.state = "unavailable"
             return
 
@@ -235,10 +258,13 @@ class Discovery:
         if boot_time() >= self.refresh_at:
             self.refresh()
         now = boot_time()
-        candidates = [device for device in self.devices.values()
+        self.beacons = {key: beacon for key, beacon in self.beacons.items() if beacon.signal(now) is not None}
+        devices = [*self.devices.values(), *self.beacons.values()]
+        candidates = [device for device in devices
                       if device.paired or (device.seen_until
                           and now < device.seen_until + LIST_SECONDS - PRESENCE_SECONDS)]
-        candidates.sort(key=lambda device: (device.identity != self.target, device.signal(now) is None,
+        candidates.sort(key=lambda device: (device.identity != self.target, device.address_type != "beacon",
+                                            device.signal(now) is None,
                                             -(device.signal(now) or -128), not device.paired, device.address))
         records = {}
         for device in candidates:
@@ -246,7 +272,7 @@ class Discovery:
             if len(records) == MAX_DEVICES:
                 break
 
-        selected = [device for device in self.devices.values()
+        selected = [device for device in devices
                     if device.identity == self.target and device.adapter in self.scanning]
         rssi = max((device.rssi for device in selected if device.signal(now) is not None), default=None)
         remaining = max((device.near_until - now for device in selected), default=0)
@@ -261,12 +287,13 @@ class Discovery:
 def main():
     parser = argparse.ArgumentParser(description="Report current Bluetooth proximity as JSON lines.")
     parser.add_argument("--address", type=str.upper)
-    parser.add_argument("--address-type", choices=ADDRESS_TYPES, default="public")
+    parser.add_argument("--address-type", choices=(*ADDRESS_TYPES, "beacon"), default="public")
     parser.add_argument("--threshold", type=int, choices=range(-127, 21), default=-70,
                         metavar="DBM")
     args = parser.parse_args()
-    if args.address and not ADDRESS.fullmatch(args.address):
-        parser.error("expected a Bluetooth MAC address")
+    identifier = BEACON_ID if args.address_type == "beacon" else ADDRESS
+    if args.address and not identifier.fullmatch(args.address):
+        parser.error("expected a valid Bluetooth address or Proxima beacon ID")
     target = (args.address, args.address_type) if args.address else None
     publish("starting")
     try:

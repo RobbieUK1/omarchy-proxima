@@ -22,6 +22,10 @@ For a Git-installed copy, use `omarchy plugin update local.proxima` to update. I
 
 The list shows recent Bluetooth sightings and devices BlueZ already knows from pairing. Only fresh signal observations can pause idle locking, even for a paired device. A non-broadcasting device is invisible to Proxima. An unpaired device with a rotating address may show up as a new entry, and Proxima will stop recognizing the saved address. This can happen with phones and other devices that use Bluetooth privacy features.
 
+## Android companion
+
+Proxima 2.1.0 also recognizes the optional Proxima Android app's Bluetooth beacon. Start broadcasting in the app, then search for its **Beacon ID** in the Omarchy widget. Select the **Proxima Android** entry and enable monitoring. The widget follows the app's beacon ID across Bluetooth address changes. The beacon ID is public and serves as a proximity signal.
+
 ## Lock behavior
 
 Once Proxima stops receiving a qualifying signal for about 60 seconds, it releases its idle hold. Omarchy then applies its configured idle timeout. Disabling Proxima, Bluetooth becoming unavailable, or losing the scanner also releases the hold. Manual and suspend locks still work. Returning within range leaves an already locked session locked. Omarchy may complete a lock countdown that its screensaver had already started before Proxima detected the device.
