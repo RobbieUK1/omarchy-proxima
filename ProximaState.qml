@@ -77,7 +77,7 @@ Scope {
     return {
       address,
       addressType: device.addressType,
-      name: name || address,
+      name: name.toUpperCase().replace(/-/g, ":") === address ? "" : name,
       paired: device.paired === true,
       connected: device.connected === true,
       privateAddress: device.privateAddress === true,

@@ -15,6 +15,7 @@ ADDRESS = re.compile(r"(?:[0-9A-F]{2}:){5}[0-9A-F]{2}")
 ADDRESS_TYPES = ("public", "random")
 DEVICE_METADATA = {"Address", "AddressType", "Adapter", "Alias", "Name", "Paired", "Connected"}
 PRESENCE_SECONDS = 15
+LIST_SECONDS = 60
 LEASE_SECONDS = 3
 RETRY_SECONDS = 4
 HYSTERESIS_DB = 5
@@ -49,10 +50,13 @@ class Device:
         adapter = str(properties.get("Adapter", ""))
         if not ADDRESS.fullmatch(address) or address_type not in ADDRESS_TYPES or not adapter:
             return None
-        alias = str(properties.get("Alias", properties.get("Name", "")))[:80]
-        name = "".join(char for char in alias if char.isprintable()).strip()
-        if name.upper().replace("-", ":") == address:
-            name = ""
+        name = ""
+        for field in ("Alias", "Name"):
+            value = str(properties.get(field, ""))[:80]
+            label = "".join(char for char in value if char.isprintable()).strip()
+            if label and label.upper().replace("-", ":") != address:
+                name = label
+                break
         return cls(address, address_type, adapter, name, bool(properties.get("Paired")),
                    bool(properties.get("Connected")))
 
@@ -232,7 +236,8 @@ class Discovery:
             self.refresh()
         now = boot_time()
         candidates = [device for device in self.devices.values()
-                      if device.paired or device.signal(now) is not None]
+                      if device.paired or (device.seen_until
+                          and now < device.seen_until + LIST_SECONDS - PRESENCE_SECONDS)]
         candidates.sort(key=lambda device: (device.identity != self.target, device.signal(now) is None,
                                             -(device.signal(now) or -128), not device.paired, device.address))
         records = {}
