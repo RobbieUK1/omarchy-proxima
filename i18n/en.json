@@ -21,6 +21,7 @@
   "device.detailsUnpaired": "%1 · Unpaired · %2",
   "device.detailsUnknown": "%1 · %2",
   "device.detailsBeacon": "%1 · Android beacon · %2",
+  "device.name": "Device name",
   "device.scanTitle": "Bluetooth devices",
   "device.scanHelp": "Choose a paired device or one that broadcasts a detectable Bluetooth signal.",
   "device.waiting": "Looking for Bluetooth devices…",

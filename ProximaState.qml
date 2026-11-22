@@ -133,6 +133,13 @@ Scope {
     return saveSettings(null, false, threshold)
   }
 
+  function renameBeacon(name) {
+    if (target?.addressType !== "beacon") return false
+    const device = validDevice(Object.assign({}, target, { name }))
+    if (!device?.name || device.name === target.name) return false
+    return saveSettings(device, enabled, threshold)
+  }
+
   function setThreshold(value) {
     return validThreshold(value) && saveSettings(target, enabled, value)
   }

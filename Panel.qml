@@ -47,6 +47,9 @@ Ui.KeyboardPanel {
   }
 
   function deviceName(device) {
+    const target = proxima.target
+    if (device?.addressType === "beacon" && target?.addressType === "beacon"
+        && device.address === target.address && target.name) return target.name
     return device && device.name ? device.name : strings.t("device.unnamed")
   }
 
@@ -179,7 +182,7 @@ Ui.KeyboardPanel {
 
         BodyText {
           Layout.fillWidth: true
-          visible: !!panel.proxima.target
+          visible: !!panel.proxima.target && panel.proxima.target.addressType !== "beacon"
           text: panel.deviceName(panel.proxima.target)
           font.pixelSize: Commons.Style.font.subtitle
           font.bold: true
@@ -187,11 +190,27 @@ Ui.KeyboardPanel {
           wrapMode: Text.NoWrap
         }
 
+        Ui.TextField {
+          Layout.fillWidth: true
+          visible: panel.proxima.target?.addressType === "beacon"
+          enabled: panel.proxima.ready && !panel.proxima.saving
+          foreground: panel.ink
+          Accessible.name: panel.strings.t("device.name")
+          placeholderText: Accessible.name
+          maximumLength: 120
+          text: panel.proxima.target?.name || ""
+          onEditingFinished: {
+            panel.proxima.renameBeacon(text)
+            text = Qt.binding(() => panel.proxima.target?.name || "")
+          }
+        }
+
         BodyText {
           Layout.fillWidth: true
           visible: !!panel.proxima.target
           color: panel.mutedInk
-          text: panel.proxima.target ? panel.deviceDetails({
+          text: panel.proxima.target?.addressType === "beacon" ? panel.signalText(panel.proxima.rssi)
+            : panel.proxima.target ? panel.deviceDetails({
             address: panel.proxima.target.address,
             addressType: panel.proxima.target.addressType,
             paired: panel.proxima.observedTarget?.paired,
