@@ -107,6 +107,61 @@ Ui.KeyboardPanel {
           font.bold: panel.proxima.inhibiting
         }
 
+        Ui.TextField {
+          Layout.fillWidth: true
+          foreground: panel.ink
+          placeholderText: panel.strings.t("device.search")
+          Accessible.name: placeholderText
+          maximumLength: 120
+          selectByMouse: true
+          text: panel.deviceQuery
+          onTextEdited: {
+            panel.deviceQuery = text
+            panel.choosingDevice = true
+          }
+        }
+
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: Commons.Style.spacing.sm
+
+          RowLayout {
+            Layout.fillWidth: true
+
+            BodyText {
+              Layout.fillWidth: true
+              text: panel.strings.t("signal.required")
+            }
+
+            PanelButton {
+              text: "−"
+              Accessible.name: panel.strings.t("signal.weaker")
+              enabled: panel.proxima.ready && !panel.proxima.saving
+                && panel.proxima.threshold > panel.minimumThreshold
+              onClicked: panel.proxima.setThreshold(Math.max(panel.minimumThreshold, panel.proxima.threshold - 5))
+            }
+
+            BodyText {
+              text: panel.signalText(panel.proxima.threshold)
+              font.bold: true
+            }
+
+            PanelButton {
+              text: "+"
+              Accessible.name: panel.strings.t("signal.stronger")
+              enabled: panel.proxima.ready && !panel.proxima.saving
+                && panel.proxima.threshold < panel.maximumThreshold
+              onClicked: panel.proxima.setThreshold(Math.min(panel.maximumThreshold, panel.proxima.threshold + 5))
+            }
+          }
+
+          BodyText {
+            Layout.fillWidth: true
+            text: panel.strings.t("signal.help")
+            color: panel.mutedInk
+          }
+        }
+
         Ui.Toggle {
           Layout.fillWidth: true
           visible: !!panel.proxima.target
@@ -184,17 +239,6 @@ Ui.KeyboardPanel {
             color: panel.mutedInk
           }
 
-          Ui.TextField {
-            Layout.fillWidth: true
-            foreground: panel.ink
-            placeholderText: panel.strings.t("device.search")
-            Accessible.name: placeholderText
-            maximumLength: 120
-            selectByMouse: true
-            text: panel.deviceQuery
-            onTextEdited: panel.deviceQuery = text
-          }
-
           BodyText {
             Layout.fillWidth: true
             visible: deviceRows.count === 0
@@ -262,47 +306,6 @@ Ui.KeyboardPanel {
           }
         }
 
-        ColumnLayout {
-          Layout.fillWidth: true
-          visible: !!panel.proxima.target && !panel.choosingDevice
-          spacing: Commons.Style.spacing.sm
-
-          RowLayout {
-            Layout.fillWidth: true
-
-            BodyText {
-              Layout.fillWidth: true
-              text: panel.strings.t("signal.required")
-            }
-
-            PanelButton {
-              text: "−"
-              Accessible.name: panel.strings.t("signal.weaker")
-              enabled: panel.proxima.ready && !panel.proxima.saving
-                && panel.proxima.threshold > panel.minimumThreshold
-              onClicked: panel.proxima.setThreshold(Math.max(panel.minimumThreshold, panel.proxima.threshold - 5))
-            }
-
-            BodyText {
-              text: panel.signalText(panel.proxima.threshold)
-              font.bold: true
-            }
-
-            PanelButton {
-              text: "+"
-              Accessible.name: panel.strings.t("signal.stronger")
-              enabled: panel.proxima.ready && !panel.proxima.saving
-                && panel.proxima.threshold < panel.maximumThreshold
-              onClicked: panel.proxima.setThreshold(Math.min(panel.maximumThreshold, panel.proxima.threshold + 5))
-            }
-          }
-
-          BodyText {
-            Layout.fillWidth: true
-            text: panel.strings.t("signal.help")
-            color: panel.mutedInk
-          }
-        }
       }
     }
 
