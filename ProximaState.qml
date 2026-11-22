@@ -9,6 +9,9 @@ Scope {
 
   readonly property bool enabled: configuration.enabled
   readonly property var target: configuration.target
+  readonly property var observedTarget: target
+    ? devices.find(device => device.address === target.address && device.addressType === target.addressType)
+    : undefined
   readonly property int threshold: configuration.threshold
   readonly property bool inhibiting: !saving && !settingsError
     && Qt.platform.pluginName.startsWith("wayland")
@@ -109,7 +112,6 @@ Scope {
       address: device.address,
       addressType: device.addressType,
       name: device.name,
-      paired: device.paired,
       privateAddress: device.privateAddress
     } : null
     saving = true
