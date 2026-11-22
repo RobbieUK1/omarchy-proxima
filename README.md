@@ -24,7 +24,7 @@ The list shows recent Bluetooth sightings and devices BlueZ already knows from p
 
 ## Lock behavior
 
-Once Proxima stops receiving a qualifying signal for about 15 seconds, it releases its idle hold. Omarchy then applies its configured idle timeout. Disabling Proxima, Bluetooth becoming unavailable, or losing the scanner also releases the hold. Manual and suspend locks still work. Returning within range leaves an already locked session locked. Omarchy may complete a lock countdown that its screensaver had already started before Proxima detected the device.
+Once Proxima stops receiving a qualifying signal for about 60 seconds, it releases its idle hold. Omarchy then applies its configured idle timeout. Disabling Proxima, Bluetooth becoming unavailable, or losing the scanner also releases the hold. Manual and suspend locks still work. Returning within range leaves an already locked session locked. Omarchy may complete a lock countdown that its screensaver had already started before Proxima detected the device.
 
 Bluetooth signal strength varies with walls, interference, and device position. The Bluetooth address is the identifier, and an unpaired broadcast can be imitated. Use manual locking when you need the session secured immediately.
 
