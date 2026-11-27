@@ -2,7 +2,7 @@
 
 Proxima is an Omarchy top-bar widget that pauses automatic idle locking when a Bluetooth device is nearby. Compatible devices work with their existing Bluetooth broadcasts. The optional Android app provides a dedicated beacon for phones that are hard to detect.
 
-## [⬇ Download the Proxima Android APK](https://github.com/RobbieUK1/omarchy-proxima/releases/download/android-v1.5/Proxima-Android.apk)
+## [⬇ Download Proxima for Android 1.5 (APK)](https://github.com/RobbieUK1/omarchy-proxima/releases/download/android-v1.5/Proxima-Android-1.5.apk)
 
 Requires Android 12 or newer and Proxima 2.1.0 or newer on Omarchy. Install Proxima 2.1.3 or newer to see the phone’s Bluetooth name on first discovery. See [Android setup](#android-companion).
 
